@@ -2,6 +2,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./assets/css/style.css";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
+import ReduxProvider from "@/redux/provider";
+import { ToastContainer } from "react-toastify";
 
 export const metadata = {
   title: "Next App",
@@ -15,12 +17,12 @@ export default function RootLayout({ children }) {
 
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
 
+      <ReduxProvider>
         <Header/>
-
+        <ToastContainer/>
         {children}
-
-
         <Footer/>
+      </ReduxProvider>
       </body>
 
     </html>

@@ -6,7 +6,7 @@ import ProductCard from "@/components/common/ProductCard";
 
 const products = [
   {
-    id: "linen-overshirt",
+    id: 1,
     name: "Linen Overshirt",
     brand: "LINEA",
     price: 89,
@@ -18,7 +18,7 @@ const products = [
     colors: ["#e8dfd0", "#2b2b2b", "#6b6146"],
   },
   {
-    id: "satin-slip-dress",
+    id: 2,
     name: "Satin Slip Dress",
     brand: "LINEA",
     price: 129,
@@ -29,7 +29,7 @@ const products = [
     colors: ["#1a1a1a", "#8a5a44", "#e8dfd0"],
   },
   {
-    id: "knitted-polo",
+    id: 3,
     name: "Knitted Polo",
     brand: "LINEA",
     price: 79,
@@ -39,7 +39,7 @@ const products = [
     colors: ["#1a1a1a", "#c9a876", "#e8dfd0"],
   },
   {
-    id: "tailored-trousers",
+    id: 4,
     name: "Tailored Trousers",
     brand: "LINEA",
     price: 99,

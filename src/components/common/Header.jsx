@@ -4,30 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faMagnifyingGlass,
-  faUser,
-  faBars,
-  faXmark,
-  faBagShopping,
-  faChevronDown,
-  faAngleRight,
-  faTruckFast,
-  faHeadset,
-  faLocationDot,
-} from "@fortawesome/free-solid-svg-icons";
+  faMagnifyingGlass, faUser, faBars, faXmark, faBagShopping, faChevronDown, faAngleRight, faTruckFast, faHeadset, faLocationDot,} from "@fortawesome/free-solid-svg-icons";
 import { faHeart } from "@fortawesome/free-regular-svg-icons";
 import {
-  Sheet,
-  SheetContent,
-  SheetClose,
-} from "@/components/ui/sheet";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Sheet, SheetContent, SheetClose,} from "@/components/ui/sheet";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,} from "@/components/ui/dropdown-menu";
+import { useSelector } from "react-redux";
 
 const megaMenuData = {
   men: {
@@ -54,10 +36,10 @@ const megaMenuData = {
 
 const navLinks = [
   { label: "Home", href: "/" },
-  { label: "Men", href: "/men", mega: "men" },
-  { label: "Women", href: "/women", mega: "women" },
+  // { label: "Men", href: "/men", mega: "men" },
+  // { label: "Women", href: "/women", mega: "women" },
   // { label: "Kids", href: "/kids" },
-  { label: "Brands", href: "/brands" },
+  // { label: "Brands", href: "/brands" },
   { label: "Sale", href: "/sale", highlight: true },
 ];
 
@@ -87,6 +69,9 @@ export default function Header() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const getCartItems = useSelector((state) => state.cart.cartItems)
+  const getWishlistItems = useSelector((state) => state.wishlist.wishlistItems)
 
   return (
     <header className="sticky top-0 z-50 w-full scroll-smooth">
@@ -192,7 +177,7 @@ export default function Header() {
               className="relative hidden h-9 w-9 place-items-center rounded-full text-neutral-700 transition-colors hover:bg-neutral-100 sm:grid dark:text-neutral-300 dark:hover:bg-neutral-800"
             >
               <FontAwesomeIcon icon={faHeart} className="h-4 w-4" />
-              <IconBadge count={3} />
+              <IconBadge count={getWishlistItems?.length || 0} />
             </Link>
 
             <Link
@@ -201,7 +186,7 @@ export default function Header() {
               className="relative grid h-9 w-9 place-items-center rounded-full text-neutral-700 transition-colors hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
             >
               <FontAwesomeIcon icon={faBagShopping} className="h-4 w-4" />
-              <IconBadge count={2} />
+              <IconBadge count={getCartItems?.length || 0}  />
             </Link>
 
             <DropdownMenu>
@@ -314,27 +299,27 @@ export default function Header() {
                 </nav>
 
                 <div className="flex items-center gap-3 border-t border-neutral-200 px-5 py-4 dark:border-neutral-800">
-                  <SheetClose asChild>
+                  <SheetClose >
                     <Link
                       href="/wishlist"
                       aria-label="Wishlist"
                       className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full border border-neutral-200 text-neutral-700 dark:border-neutral-700 dark:text-neutral-200"
                     >
                       <FontAwesomeIcon icon={faHeart} className="h-4 w-4" />
-                      <IconBadge count={3} />
+                      <IconBadge count={getWishlistItems?.length || 0} />
                     </Link>
                   </SheetClose>
-                  <SheetClose asChild>
+                  <SheetClose >
                     <Link
                       href="/cart"
                       aria-label="Cart"
                       className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full border border-neutral-200 text-neutral-700 dark:border-neutral-700 dark:text-neutral-200"
                     >
                       <FontAwesomeIcon icon={faBagShopping} className="h-4 w-4" />
-                      <IconBadge count={2} />
+                      <IconBadge count={getCartItems?.length || 0} />
                     </Link>
                   </SheetClose>
-                  <SheetClose asChild>
+                  <SheetClose >
                     <Link
                       href="/login"
                       className="flex flex-1 items-center justify-center gap-2 rounded-full bg-neutral-950 px-5 py-3 text-sm font-semibold text-white transition-transform hover:scale-[1.02] dark:bg-white dark:text-neutral-950"
