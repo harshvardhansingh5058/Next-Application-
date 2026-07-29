@@ -38,7 +38,7 @@ function StarRating({ rating, reviewCount }) {
   );
 }
 
-export default function ProductCard({ product, currency = "$", aspectRatio = 3 / 4 }) {
+export default function ProductCard({ product, currency = "₹", aspectRatio = 3 / 4 }) {
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] ?? null);
   const dispatch = useDispatch();
 
@@ -52,15 +52,18 @@ export default function ProductCard({ product, currency = "$", aspectRatio = 3 /
       ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
       : null);
 
+  const title = product.name ?? product.title ?? "Product";
+  const handle = product.handle ?? product.id;
+
   return (
     <>
-      <Link href={`/product-detail/${product.id}`}>
+      <Link href={`/product-detail/${handle}`}>
         <div className="group w-full">
           <div className="relative overflow-hidden rounded-xl bg-neutral-100">
             <AspectRatio ratio={aspectRatio} className="relative">
               <Image
                 src={product.image}
-                alt={product.name}
+                alt={title}
                 fill
                 className="object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -104,21 +107,21 @@ export default function ProductCard({ product, currency = "$", aspectRatio = 3 /
           </div>
 
           <div className="pt-3">
-            {product.brand && (
+            {(product.brand || product.vendor) && (
               <p className="text-[11px] font-semibold uppercase tracking-widest text-neutral-400">
-                {product.brand}
+                {product.brand || product.vendor}
               </p>
             )}
 
             <h3 className="mt-0.5 line-clamp-1 text-sm font-semibold text-neutral-900 transition-colors group-hover:text-neutral-600">
-              {product.name}
+              {title}
             </h3>
 
             {product.rating && <StarRating rating={product.rating} reviewCount={product.reviewCount} />}
 
             <div className="mt-1.5 flex items-center gap-2">
               <p className="text-sm font-semibold text-neutral-900">
-                {currency}{product.price.toLocaleString()}
+                {currency}{product.price.toLocaleString("en-IN")}
               </p>
               {product.originalPrice && (
                 <p className="text-xs text-neutral-400 line-through">

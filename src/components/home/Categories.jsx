@@ -1,98 +1,46 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import categoryMen from "@/app/assets/images/category-men.jpg";
-import categoryWomen from "@/app/assets/images/category-women.jpg";
-import categoryAccessories from "@/app/assets/images/category-new.jpg";
-import categorySale from "@/app/assets/images/category-sale.jpg";
 
 const categories = [
   {
-    label: "Men",
-    href: "/men",
-    image: categoryMen,
-    tag: "New Season",
+    title: "COOL HOODIES",
+    href: "/products?category=Hoody",
+    image: "https://images.unsplash.com/photo-1556905055-8f358a7a47b2?w=800&q=80",
   },
   {
-    label: "Women",
-    href: "/women",
-    image: categoryWomen,
-    tag: "Trending Now",
+    title: "CLASSIC POLOS",
+    href: "/products?category=Polo%20Neck",
+    image: "https://images.unsplash.com/photo-1622445275576-721325763afe?w=800&q=80",
   },
   {
-    label: "Accessories",
-    href: "/brands",
-    image: categoryAccessories,
-    tag: "Must Haves",
-  },
-  {
-    label: "Sale",
-    href: "/sale",
-    image: categorySale,
-    tag: "Up to 50% Off",
-    highlight: true,
+    title: "CHIC SWEATSHIRTS",
+    href: "/products?category=Sweatshirt",
+    image: "https://images.unsplash.com/photo-1578587018452-892bacefd3f2?w=800&q=80",
   },
 ];
 
 export default function Categories() {
   return (
-    <section className="mx-auto max-w-[1600px] px-6 py-20 lg:px-10">
-
-      {/* Section heading */}
-      <div className="mb-8 flex items-end justify-between">
-        <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-orange-500">
-            Collections
-          </p>
-          <h2 className="text-2xl font-black tracking-tight text-neutral-950 sm:text-4xl">
-            Shop by Category
-          </h2>
-        </div>
-        <p className="hidden text-sm text-neutral-500 sm:block">
-          Find exactly what you&apos;re looking for
-        </p>
-      </div>
-
-      {/* Category grid */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-4 lg:grid-cols-4">
+    <section className="mx-auto max-w-[1600px] px-6 py-12 lg:px-10 lg:py-16">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
         {categories.map((cat) => (
-          <Link key={cat.label} href={cat.href} className="group">
-            <div className="relative overflow-hidden rounded-2xl bg-neutral-100">
-              {/* Image */}
-              <div className="relative aspect-[3/4]">
-                <Image
-                  src={cat.image}
-                  alt={cat.label}
-                  fill
-                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 400px"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+          <Link key={cat.title} href={cat.href} className="group relative block overflow-hidden rounded-2xl">
+            <div className="relative aspect-square w-full overflow-hidden bg-neutral-100">
+              <Image
+                src={cat.image}
+                alt={cat.title}
+                fill
+                sizes="(max-width: 640px) 100vw, 33vw"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              {/* Overlay */}
+              <div className="absolute inset-0 bg-black/25 transition-colors duration-300 group-hover:bg-black/35" />
 
-                {/* Tag pill */}
-                <span
-                  className={[
-                    "absolute left-3 top-3 rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-wider",
-                    cat.highlight
-                      ? "bg-orange-600 text-white"
-                      : "bg-white/90 text-neutral-900",
-                  ].join(" ")}
-                >
-                  {cat.tag}
-                </span>
-
-                {/* Bottom label */}
-                <div className="absolute inset-x-0 bottom-0 p-4 sm:p-5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-black text-white sm:text-xl">
-                      {cat.label}
-                    </span>
-                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition-all duration-200 group-hover:bg-white/40">
-                      <ArrowRight className="h-3.5 w-3.5 text-white" />
-                    </span>
-                  </div>
-                </div>
+              {/* Centered Title */}
+              <div className="absolute inset-0 flex items-center justify-center p-4">
+                <h3 className="text-center text-lg font-bold tracking-widest text-white uppercase sm:text-xl drop-shadow-sm">
+                  {cat.title}
+                </h3>
               </div>
             </div>
           </Link>

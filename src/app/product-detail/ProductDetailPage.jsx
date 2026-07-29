@@ -1,222 +1,333 @@
-import { BadgeCheck, ChevronRight, Heart, Minus, Plus, RefreshCw, ShieldCheck, Star, Truck } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+"use client";
 
-export default function ProductDetailPage() {
+import { useState, useEffect } from "react";
+import axios from "axios";
+import Image from "next/image";
+import Link from "next/link";
+import { useDispatch } from "react-redux";
+import {
+  BadgeCheck, ChevronRight, Minus, Plus,
+  RefreshCw, ShieldCheck, Truck, ShoppingBag,
+} from "lucide-react";
+import { addToCart } from "@/redux/features/cartSlice";
+import WishlistHeart from "@/components/common/WishlistHeart";
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+function stripHtml(html) {
+  return html?.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim() ?? "";
+}
+
+// ── Loading skeleton ──────────────────────────────────────────────────────────
+
+function Skeleton() {
   return (
-    <main className="flex-1 bg-background">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
-        <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <span>Home</span>
-          <ChevronRight className="size-4" />
-          <span>Men</span>
-          <ChevronRight className="size-4" />
-          <span className="text-foreground">Signature Utility Shirt</span>
+    <div className="mx-auto max-w-7xl animate-pulse px-4 py-10 sm:px-6 lg:px-8">
+      <div className="grid gap-8 lg:grid-cols-2">
+        <div className="aspect-square max-w-md rounded-2xl bg-neutral-200" />
+        <div className="space-y-4 pt-4">
+          <div className="h-5 w-24 rounded-full bg-neutral-200" />
+          <div className="h-8 w-3/4 rounded-full bg-neutral-200" />
+          <div className="h-4 w-1/3 rounded-full bg-neutral-200" />
+          <div className="h-10 w-1/4 rounded-full bg-neutral-200" />
+          <div className="h-32 w-full rounded-2xl bg-neutral-200" />
         </div>
+      </div>
+    </div>
+  );
+}
 
-        <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="space-y-4">
-            <div className="overflow-hidden rounded-[2rem] border border-border bg-muted/40 p-3 shadow-sm">
-              <img
-                src={`data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1000"><rect width="100%" height="100%" fill="#f3f4f6"/><rect x="130" y="120" width="640" height="760" rx="42" fill="#111827"/><rect x="200" y="210" width="500" height="200" rx="24" fill="#f9fafb"/><rect x="220" y="460" width="220" height="240" rx="24" fill="#1f2937"/><rect x="460" y="460" width="220" height="240" rx="24" fill="#374151"/></svg>')}`}
-                alt="Signature Utility Shirt"
-                className="h-[420px] w-full rounded-[1.5rem] object-cover sm:h-[520px] lg:h-[640px]"
-              />
-            </div>
+// ── Main Component ────────────────────────────────────────────────────────────
 
-            <div className="grid grid-cols-3 gap-3">
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="overflow-hidden rounded-2xl border border-border">
-                  <img
-                    src={`data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="300" height="220"><rect width="100%" height="100%" fill="#f3f4f6"/><rect x="30" y="30" width="240" height="160" rx="20" fill="#111827"/></svg>')}`}
-                    alt={`Product thumbnail ${item}`}
-                    className="h-24 w-full object-cover sm:h-28"
+export default function ProductDetailPage({ productId }) {
+  const dispatch = useDispatch();
+
+  const [product, setProduct]       = useState(null);
+  const [loading, setLoading]       = useState(true);
+  const [activeImage, setActiveImage] = useState(null);
+  const [selectedSize, setSelectedSize]   = useState(null);
+  const [selectedColor, setSelectedColor] = useState(null);
+  const [quantity, setQuantity]     = useState(1);
+
+  // ── Fetch product by handle ────────────────────────────────────────────────
+  useEffect(() => {
+    if (!productId) return;
+    setLoading(true);
+    axios
+      .get(`https://beinghumanclothing.com/products/${productId}.json`)
+      .then(({ data }) => {
+        const p = data.product;
+        setProduct(p);
+        setActiveImage(p.images?.[0]?.src ?? null);
+        // default selections
+        const sizeOpt  = p.options?.find((o) => o.name === "Size");
+        const colorOpt = p.options?.find((o) => o.name === "Color");
+        if (sizeOpt)  setSelectedSize(sizeOpt.values[0]);
+        if (colorOpt) setSelectedColor(colorOpt.values[0]);
+      })
+      .catch((err) => console.warn("[ProductDetail] fetch failed:", err.message))
+      .finally(() => setLoading(false));
+  }, [productId]);
+
+  if (loading) return <Skeleton />;
+  if (!product) return (
+    <div className="flex min-h-[60vh] items-center justify-center text-neutral-500">
+      Product not found.
+    </div>
+  );
+
+  // ── Derived values ─────────────────────────────────────────────────────────
+  const variant    = product.variants?.[0] ?? {};
+  const price      = parseFloat(variant.price) || 0;
+  const compareAt  = variant.compare_at_price ? parseFloat(variant.compare_at_price) : null;
+  const hasDiscount = compareAt && compareAt > price;
+  const discount   = hasDiscount ? Math.round(((compareAt - price) / compareAt) * 100) : null;
+
+  const sizeOption  = product.options?.find((o) => o.name === "Size");
+  const colorOption = product.options?.find((o) => o.name === "Color");
+
+  const isSizeAvailable = (size) =>
+    product.variants?.some((v) => v.option1 === size && v.available) ?? false;
+
+  const description = stripHtml(product.body_html);
+
+  // ── Add to cart ────────────────────────────────────────────────────────────
+  const handleAddToCart = () => {
+    dispatch(
+      addToCart({
+        id: product.id,
+        title: product.title,
+        price,
+        image: activeImage,
+        quantity,
+        vendor: product.vendor,
+        size: selectedSize,
+        color: selectedColor,
+      })
+    );
+  };
+
+  return (
+    <main className="flex-1 bg-white">
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10 lg:py-12">
+
+        {/* ── Breadcrumb ── */}
+        <nav className="mb-6 flex flex-wrap items-center gap-2 text-sm text-neutral-400">
+          <Link href="/" className="hover:text-neutral-700">Home</Link>
+          <ChevronRight className="h-3.5 w-3.5" />
+          <Link href="/products" className="hover:text-neutral-700">Shop</Link>
+          <ChevronRight className="h-3.5 w-3.5" />
+          <span className="text-neutral-900">{product.title}</span>
+        </nav>
+
+        {/* ── Main grid ── */}
+        <div className="grid gap-10 lg:grid-cols-2 lg:items-start">
+
+          {/* ── Left: Images (Main + Thumbnails on Right) ── */}
+          <div className="flex flex-col sm:flex-row gap-3 max-w-[540px]">
+            {/* Main image */}
+            <div className="relative flex-1 overflow-hidden rounded-2xl bg-neutral-100">
+              <div className="relative aspect-square">
+                {activeImage && (
+                  <Image
+                    src={activeImage}
+                    alt={product.title}
+                    fill
+                    priority
+                    sizes="(max-width:1024px) 100vw, 45vw"
+                    className="object-cover"
                   />
-                </div>
-              ))}
+                )}
+                {/* Wishlist on main image */}
+                <WishlistHeart
+                  product={{ id: product.id, title: product.title, price, image: activeImage }}
+                />
+              </div>
             </div>
+
+            {/* Thumbnails on Right Side */}
+            {product.images?.length > 1 && (
+              <div className="flex sm:flex-col gap-2 overflow-x-auto sm:overflow-y-auto shrink-0">
+                {product.images.slice(0, 5).map((img) => (
+                  <button
+                    key={img.id}
+                    onClick={() => setActiveImage(img.src)}
+                    className={`relative h-16 w-16 sm:h-20 sm:w-20 aspect-square overflow-hidden rounded-xl border-2 transition shrink-0 ${
+                      activeImage === img.src
+                        ? "border-neutral-900"
+                        : "border-transparent hover:border-neutral-300"
+                    }`}
+                  >
+                    <Image
+                      src={img.src}
+                      alt={img.alt || product.title}
+                      fill
+                      sizes="80px"
+                      className="object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
+          {/* ── Right: Details ── */}
           <div className="space-y-6">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-primary">
-                <BadgeCheck className="size-4" />
-                New arrival
-              </div>
-              <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-                Signature Utility Shirt
+
+            {/* Vendor + Title */}
+            <div className="space-y-1.5">
+              {product.vendor && (
+                <p className="text-xs font-semibold uppercase tracking-widest text-orange-500">
+                  {product.vendor}
+                </p>
+              )}
+              <h1 className="text-2xl font-black tracking-tight text-neutral-900 sm:text-3xl">
+                {product.title}
               </h1>
-              <p className="text-base leading-7 text-muted-foreground">
-                A refined everyday staple built for long days, sharp layering, and effortless movement.
-              </p>
+              {product.product_type && (
+                <p className="text-sm text-neutral-400">{product.product_type}</p>
+              )}
             </div>
 
+            {/* Price */}
+            <div className="flex items-end gap-3">
+              <span className="text-3xl font-black text-neutral-900">
+                ₹{price.toLocaleString("en-IN")}
+              </span>
+              {hasDiscount && (
+                <>
+                  <span className="text-lg text-neutral-400 line-through">
+                    ₹{compareAt.toLocaleString("en-IN")}
+                  </span>
+                  <span className="rounded-full bg-red-50 px-2 py-0.5 text-sm font-bold text-red-500">
+                    {discount}% off
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Color selector */}
+            {colorOption && (
+              <div>
+                <p className="mb-2.5 text-xs font-semibold uppercase tracking-widest text-neutral-500">
+                  Color — <span className="normal-case font-normal text-neutral-900">{selectedColor}</span>
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {colorOption.values.map((color) => (
+                    <button
+                      key={color}
+                      onClick={() => setSelectedColor(color)}
+                      className={`rounded-full border px-4 py-1.5 text-sm transition ${
+                        selectedColor === color
+                          ? "border-neutral-900 bg-neutral-900 text-white"
+                          : "border-neutral-200 text-neutral-700 hover:border-neutral-400"
+                      }`}
+                    >
+                      {color}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Size selector */}
+            {sizeOption && (
+              <div>
+                <p className="mb-2.5 text-xs font-semibold uppercase tracking-widest text-neutral-500">
+                  Size — <span className="normal-case font-normal text-neutral-900">{selectedSize}</span>
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {sizeOption.values.map((size) => {
+                    const available = isSizeAvailable(size);
+                    return (
+                      <button
+                        key={size}
+                        onClick={() => available && setSelectedSize(size)}
+                        disabled={!available}
+                        className={`min-w-[3rem] rounded-full border px-3 py-1.5 text-sm font-medium transition ${
+                          selectedSize === size
+                            ? "border-neutral-900 bg-neutral-900 text-white"
+                            : available
+                            ? "border-neutral-200 text-neutral-700 hover:border-neutral-400"
+                            : "cursor-not-allowed border-neutral-100 text-neutral-300 line-through"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Quantity + CTA */}
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-sm font-medium text-foreground">
-                <Star className="size-4 fill-amber-400 text-amber-400" />
-                4.9 · 248 reviews
+              {/* Stepper */}
+              <div className="flex items-center rounded-full border border-neutral-200">
+                <button
+                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                  className="grid h-10 w-10 place-items-center rounded-full transition hover:bg-neutral-100"
+                >
+                  <Minus className="h-4 w-4" />
+                </button>
+                <span className="w-8 text-center text-sm font-semibold">{quantity}</span>
+                <button
+                  onClick={() => setQuantity((q) => Math.min(10, q + 1))}
+                  className="grid h-10 w-10 place-items-center rounded-full transition hover:bg-neutral-100"
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
               </div>
-              <span className="text-sm text-muted-foreground">Free express shipping</span>
+
+              {/* Add to Cart */}
+              <button
+                onClick={handleAddToCart}
+                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-neutral-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-neutral-700 sm:flex-initial"
+              >
+                <ShoppingBag className="h-4 w-4" />
+                Add to Cart
+              </button>
             </div>
 
+            {/* Trust badges */}
+            <div className="grid grid-cols-3 gap-3 pt-2">
+              {[
+                { icon: Truck,        title: "Fast Delivery",   sub: "2–4 business days" },
+                { icon: ShieldCheck,  title: "Secure Checkout", sub: "Protected payments" },
+                { icon: RefreshCw,    title: "Easy Returns",    sub: "30-day policy" },
+              ].map(({ icon: Icon, title, sub }) => (
+                <div key={title} className="rounded-2xl border border-neutral-100 bg-neutral-50 p-3 text-center">
+                  <Icon className="mx-auto mb-1.5 h-4 w-4 text-orange-500" />
+                  <p className="text-[11px] font-semibold text-neutral-800">{title}</p>
+                  <p className="text-[10px] text-neutral-400">{sub}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Description */}
+            {description && (
+              <div className="rounded-2xl border border-neutral-100 bg-neutral-50 p-4">
+                <p className="mb-1.5 text-xs font-semibold uppercase tracking-widest text-neutral-400">
+                  About this product
+                </p>
+                <p className="text-sm leading-relaxed text-neutral-600">{description}</p>
+              </div>
+            )}
+
+            {/* Highlights */}
             <div className="space-y-2">
-              <div className="text-sm uppercase tracking-[0.3em] text-muted-foreground">Price</div>
-              <div className="flex items-end gap-3">
-                <span className="text-4xl font-semibold text-foreground">$128</span>
-                <span className="text-lg text-muted-foreground line-through">$160</span>
-              </div>
+              {["Premium quality fabric", "Easy care — machine washable", "Designed for everyday comfort"].map(
+                (h) => (
+                  <div key={h} className="flex items-center gap-2 text-sm text-neutral-600">
+                    <BadgeCheck className="h-4 w-4 shrink-0 text-orange-500" />
+                    {h}
+                  </div>
+                )
+              )}
             </div>
-
-            <Card className="border-border/70 bg-card/90">
-              <CardContent className="space-y-5 p-5 sm:p-6">
-                <div>
-                  <div className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Color</div>
-                  <div className="flex flex-wrap gap-3">
-                    <button type="button" className="flex items-center gap-2 rounded-full border border-primary bg-primary/5 px-3 py-2 text-sm">
-                      <span className="size-4 rounded-full bg-slate-900" />
-                      Midnight
-                    </button>
-                    <button type="button" className="flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-sm">
-                      <span className="size-4 rounded-full bg-amber-100" />
-                      Sand
-                    </button>
-                    <button type="button" className="flex items-center gap-2 rounded-full border border-border bg-background px-3 py-2 text-sm">
-                      <span className="size-4 rounded-full bg-emerald-800" />
-                      Olive
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="mb-3 text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Size</div>
-                  <div className="flex flex-wrap gap-2">
-                    <button type="button" className="min-w-12 rounded-full border border-primary bg-primary px-3 py-2 text-sm font-medium text-primary-foreground">
-                      M
-                    </button>
-                    <button type="button" className="min-w-12 rounded-full border border-border bg-background px-3 py-2 text-sm font-medium text-foreground">
-                      XS
-                    </button>
-                    <button type="button" className="min-w-12 rounded-full border border-border bg-background px-3 py-2 text-sm font-medium text-foreground">
-                      S
-                    </button>
-                    <button type="button" className="min-w-12 rounded-full border border-border bg-background px-3 py-2 text-sm font-medium text-foreground">
-                      L
-                    </button>
-                    <button type="button" className="min-w-12 rounded-full border border-border bg-background px-3 py-2 text-sm font-medium text-foreground">
-                      XL
-                    </button>
-                  </div>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex items-center rounded-full border border-border bg-background p-1">
-                    <button type="button" className="rounded-full p-2 transition hover:bg-muted">
-                      <Minus className="size-4" />
-                    </button>
-                    <span className="min-w-10 text-center text-sm font-semibold">1</span>
-                    <button type="button" className="rounded-full p-2 transition hover:bg-muted">
-                      <Plus className="size-4" />
-                    </button>
-                  </div>
-                  <Button size="lg" className="flex-1 sm:flex-initial">Add to bag</Button>
-                  <Button variant="outline" size="icon" aria-label="Save item">
-                    <Heart className="size-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-border bg-background p-4">
-                <Truck className="mb-2 size-5 text-primary" />
-                <div className="text-sm font-semibold">Fast delivery</div>
-                <div className="text-sm text-muted-foreground">Arrives in 2–4 days</div>
-              </div>
-              <div className="rounded-2xl border border-border bg-background p-4">
-                <ShieldCheck className="mb-2 size-5 text-primary" />
-                <div className="text-sm font-semibold">Secure checkout</div>
-                <div className="text-sm text-muted-foreground">Protected payments</div>
-              </div>
-              <div className="rounded-2xl border border-border bg-background p-4">
-                <RefreshCw className="mb-2 size-5 text-primary" />
-                <div className="text-sm font-semibold">Easy returns</div>
-                <div className="text-sm text-muted-foreground">30-day exchange policy</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-          <Card className="border-border/70">
-            <CardHeader>
-              <CardTitle>Why you’ll love it</CardTitle>
-              <CardDescription>Designed to feel polished from morning errands to evening plans.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {[
-                'Premium lightweight fabric with breathable comfort',
-                'Tailored fit for everyday wear and travel',
-                'Thoughtful pockets and durable stitching',
-              ].map((highlight) => (
-                <div key={highlight} className="flex items-start gap-3 rounded-2xl bg-muted/50 p-3 text-sm text-foreground">
-                  <BadgeCheck className="mt-0.5 size-4 shrink-0 text-primary" />
-                  <span>{highlight}</span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/70">
-            <CardHeader>
-              <CardTitle>Product details</CardTitle>
-              <CardDescription>Selected for comfort, versatility, and everyday durability.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {[
-                { label: 'Material', value: 'Recycled cotton blend' },
-                { label: 'Care', value: 'Machine wash cold' },
-                { label: 'Origin', value: 'Designed in London' },
-              ].map((spec) => (
-                <div key={spec.label} className="flex items-center justify-between rounded-2xl border border-border px-4 py-3 text-sm">
-                  <span className="text-muted-foreground">{spec.label}</span>
-                  <span className="font-medium text-foreground">{spec.value}</span>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex items-end justify-between gap-3">
-            <div>
-              <h2 className="text-2xl font-semibold text-foreground">You may also like</h2>
-              <p className="text-sm text-muted-foreground">Complete your look with these favorites.</p>
-            </div>
-            <Button variant="link" className="px-0 text-sm">
-              View all
-            </Button>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            {[
-              { name: 'Everyday Overshirt', price: '$89', accent: 'from-slate-900 to-slate-600' },
-              { name: 'Travel Tote', price: '$74', accent: 'from-amber-500 to-orange-600' },
-              { name: 'Layered Knit Set', price: '$112', accent: 'from-emerald-700 to-lime-600' },
-            ].map((product) => (
-              <Card key={product.name} className="border-border/70 overflow-hidden">
-                <div className={`h-40 bg-gradient-to-br ${product.accent}`} />
-                <CardContent className="flex items-end justify-between gap-3 p-4">
-                  <div>
-                    <div className="font-semibold text-foreground">{product.name}</div>
-                    <div className="text-sm text-muted-foreground">Crafted essentials</div>
-                  </div>
-                  <span className="text-sm font-semibold text-foreground">{product.price}</span>
-                </CardContent>
-              </Card>
-            ))}
           </div>
         </div>
       </section>
     </main>
-  )
+  );
 }

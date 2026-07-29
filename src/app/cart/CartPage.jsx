@@ -71,7 +71,7 @@ export default function CartPage() {
                 <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-lg bg-neutral-100 sm:h-28 sm:w-24">
                   <Image
                     src={item.image}
-                    alt={item.name}
+                    alt={item.name ?? item.title ?? "Product"}
                     fill
                     className="object-cover"
                   />
@@ -86,7 +86,7 @@ export default function CartPage() {
                         </p>
                       )}
                       <p className="mt-0.5 truncate text-sm font-medium text-neutral-900 sm:text-base">
-                        {item.name}
+                        {item.name ?? item.title}
                       </p>
                       {item.color && (
                         <p className="mt-0.5 text-xs text-neutral-500">
@@ -132,7 +132,7 @@ export default function CartPage() {
                     </div>
 
                     <p className="text-sm font-semibold text-neutral-900 sm:text-base">
-                      ${(item.price * item.quantity).toLocaleString()}
+                      ₹{(item.price * item.quantity).toLocaleString("en-IN")}
                     </p>
                   </div>
                 </div>
@@ -152,13 +152,13 @@ export default function CartPage() {
               <div className="flex justify-between">
                 <dt className="text-neutral-500">Subtotal</dt>
                 <dd className="font-medium text-neutral-900">
-                  ${subtotal.toLocaleString()}
+                  ₹{subtotal.toLocaleString("en-IN")}
                 </dd>
               </div>
               <div className="flex justify-between">
                 <dt className="text-neutral-500">Shipping</dt>
                 <dd className="font-medium text-neutral-900">
-                  ${shipping.toLocaleString()}
+                  ₹{shipping.toLocaleString("en-IN")}
                 </dd>
               </div>
             </dl>
@@ -168,7 +168,7 @@ export default function CartPage() {
                 Total
               </span>
               <span className="text-base font-semibold text-neutral-900">
-                ${total.toLocaleString()}
+                ₹{total.toLocaleString("en-IN")}
               </span>
             </div>
 

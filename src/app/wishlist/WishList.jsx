@@ -5,10 +5,7 @@ import Link from "next/link";
 import { useSelector, useDispatch } from "react-redux";
 import { Heart, Trash2, ShoppingBag, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-    toggleWishlist,
-    clearWishlist,
-} from "@/redux/features/wishlistSlice";
+import { toggleWishlist, clearWishlist,} from "@/redux/features/wishlistSlice";
 import { addToCart } from "@/redux/features/cartSlice";
 
 export default function WishlistPage() {
@@ -70,7 +67,7 @@ export default function WishlistPage() {
                                 <div className="relative aspect-[3/4]">
                                     <Image
                                         src={item.image}
-                                        alt={item.name}
+                                        alt={item.name ?? item.title ?? "Product"}
                                         fill
                                         className="object-cover transition-transform duration-500 group-hover:scale-105"
                                     />
@@ -99,10 +96,10 @@ export default function WishlistPage() {
                                 </p>
                             )}
                             <h3 className="mt-0.5 line-clamp-1 text-sm font-semibold text-neutral-900">
-                                {item.name}
+                                {item.name ?? item.title}
                             </h3>
                             <p className="mt-1 text-sm font-semibold text-neutral-900">
-                                ${item.price?.toLocaleString()}
+                                ₹{item.price?.toLocaleString("en-IN")}
                             </p>
 
                             <div className="mt-3 flex gap-2">

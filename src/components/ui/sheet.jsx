@@ -15,15 +15,25 @@ function Sheet({
 }
 
 function SheetTrigger({
+  asChild,
+  render,
+  children,
   ...props
 }) {
-  return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />;
+  const customRender = render || (asChild && React.isValidElement(children) ? children : undefined);
+  const customChildren = asChild && React.isValidElement(children) ? undefined : children;
+  return <SheetPrimitive.Trigger data-slot="sheet-trigger" render={customRender} {...props}>{customChildren}</SheetPrimitive.Trigger>;
 }
 
 function SheetClose({
+  asChild,
+  render,
+  children,
   ...props
 }) {
-  return <SheetPrimitive.Close data-slot="sheet-close" {...props} />;
+  const customRender = render || (asChild && React.isValidElement(children) ? children : undefined);
+  const customChildren = asChild && React.isValidElement(children) ? undefined : children;
+  return <SheetPrimitive.Close data-slot="sheet-close" render={customRender} {...props}>{customChildren}</SheetPrimitive.Close>;
 }
 
 function SheetPortal({

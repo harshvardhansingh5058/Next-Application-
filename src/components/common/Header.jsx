@@ -36,8 +36,8 @@ const megaMenuData = {
 
 const navLinks = [
   { label: "Home", href: "/" },
-  // { label: "Men", href: "/men", mega: "men" },
-  // { label: "Women", href: "/women", mega: "women" },
+  { label: "Men", href: "/men", mega: "men" },
+  { label: "Women", href: "/women", mega: "women" },
   // { label: "Kids", href: "/kids" },
   // { label: "Brands", href: "/brands" },
   { label: "Sale", href: "/sale", highlight: true },

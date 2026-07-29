@@ -1,133 +1,158 @@
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
-import ProductCard from "@/components/common/ProductCard";
+"use client";
 
-const bestSellers = [
-  {
-    id: 201,
-    name: "Classic White Shirt",
-    brand: "LINEA",
-    price: 95,
-    originalPrice: 120,
-    badge: "Sale",
-    rating: 4.9,
-    reviewCount: 812,
-    image:
-      "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=600&q=80",
-    colors: ["#ffffff", "#e8dfd0", "#1a1a1a"],
-  },
-  {
-    id: 202,
-    name: "Wool Crew Sweater",
-    brand: "LINEA",
-    price: 139,
-    rating: 4.8,
-    reviewCount: 634,
-    image:
-      "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=600&q=80",
-    colors: ["#1a1a1a", "#8a5a44", "#6b6146"],
-  },
-  {
-    id: 203,
-    name: "Pleated Midi Skirt",
-    brand: "LINEA",
-    price: 119,
-    badge: "New",
-    rating: 4.7,
-    reviewCount: 287,
-    image:
-      "https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=600&q=80",
-    colors: ["#1a1a1a", "#e8dfd0", "#c9a876"],
-  },
-  {
-    id: 204,
-    name: "Leather Crossbody",
-    brand: "LINEA",
-    price: 179,
-    rating: 4.9,
-    reviewCount: 523,
-    image:
-      "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=600&q=80",
-    colors: ["#1a1a1a", "#8a5a44", "#e8dfd0"],
-  },
-  {
-    id: 205,
-    name: "Wide-Leg Trousers",
-    brand: "LINEA",
-    price: 109,
-    originalPrice: 139,
-    badge: "Sale",
-    rating: 4.6,
-    reviewCount: 198,
-    image:
-      "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=600&q=80",
-    colors: ["#1a1a1a", "#c9a876"],
-  },
-  {
-    id: 206,
-    name: "Oversized Hoodie",
-    brand: "LINEA",
-    price: 89,
-    rating: 4.7,
-    reviewCount: 742,
-    image:
-      "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=600&q=80",
-    colors: ["#6b6146", "#1a1a1a", "#e8dfd0"],
-  },
-  {
-    id: 207,
-    name: "Silk Camisole",
-    brand: "LINEA",
-    price: 75,
-    badge: "New",
-    rating: 4.5,
-    reviewCount: 163,
-    image:
-      "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=600&q=80",
-    colors: ["#e8dfd0", "#8a5a44", "#1a1a1a"],
-  },
-  {
-    id: 208,
-    name: "Slim Chino Pants",
-    brand: "LINEA",
-    price: 85,
-    originalPrice: 105,
-    rating: 4.8,
-    reviewCount: 445,
-    image:
-      "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=600&q=80",
-    colors: ["#c9a876", "#1a1a1a", "#6b6146"],
-  },
-];
+import { useState, useEffect } from "react";
+import axios from "axios";
+import Image from "next/image";
+import Link from "next/link";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import WishlistHeart from "@/components/common/WishlistHeart";
+
+const API_URL =
+  "https://beinghumanclothing.com/collections/women/products.json";
 
 export default function BestSellers() {
+  const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get(API_URL)
+      .then(({ data }) => {
+        const raw = data?.products ?? [];
+        const mapped = raw.slice(0, 12).map((p) => {
+          const variant = p.variants?.[0] ?? {};
+          const price = parseFloat(variant.price) || 0;
+          const compareAt = variant.compare_at_price
+            ? parseFloat(variant.compare_at_price)
+            : null;
+          const discount =
+            compareAt && compareAt > price
+              ? Math.round(((compareAt - price) / compareAt) * 100)
+              : null;
+
+          return {
+            id: p.id,
+            handle: p.handle,
+            title: p.title,
+            price,
+            originalPrice: compareAt && compareAt > price ? compareAt : null,
+            discount,
+            image: p.images?.[0]?.src ?? null,
+          };
+        });
+        setProducts(mapped);
+      })
+      .catch((err) =>
+        console.warn("[TrendingDrips] fetch failed:", err.message)
+      );
+  }, []);
+
   return (
-    <section className="mx-auto max-w-[1600px] px-6 py-14 lg:px-10 lg:py-20">
+    <section className="py-14 lg:py-20">
+      {/* Heading */}
+      <h2 className="mb-8 text-center text-xl font-black uppercase tracking-widest text-neutral-900 lg:text-2xl">
+        Trending Drips For Women
+      </h2>
 
-      {/* Section header */}
-      <div className="mb-8 flex items-end justify-between lg:mb-10">
-        <div>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-orange-500">
-            Customer Favourites
-          </p>
-          <h2 className="text-2xl font-black tracking-tight text-neutral-950 sm:text-4xl">
-            Best Sellers
-          </h2>
-        </div>
-        <Link
-          href="/bestsellers"
-          className="flex items-center gap-1.5 text-sm font-semibold text-neutral-700 transition-colors hover:text-neutral-950"
+      {/* Navigation button styles */}
+      <style>{`
+  .trending-swiper .swiper-button-prev,
+  .trending-swiper .swiper-button-next {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10);
+    transition: box-shadow 0.25s ease, transform 0.25s ease, opacity 0.3s ease;
+    opacity: 0;
+  }
+
+  .trending-swiper:hover .swiper-button-prev,
+  .trending-swiper:hover .swiper-button-next {
+    opacity: 1;
+  }
+
+  .trending-swiper .swiper-button-prev:hover,
+  .trending-swiper .swiper-button-next:hover {
+    box-shadow: 0 6px 16px rgba(0,0,0,0.16);
+    transform: scale(1.06);
+  }
+
+  .trending-swiper .swiper-button-prev::after,
+  .trending-swiper .swiper-button-next::after {
+    font-size: 13px;
+    font-weight: 700;
+    color: #171717;
+  }
+
+  .trending-swiper .swiper-button-disabled {
+    opacity: 0 !important;
+    pointer-events: none;
+  }
+`}</style>
+
+      {/* Swiper Carousel */}
+      <div className="trending-swiper">
+        <Swiper
+          modules={[Navigation]}
+          navigation
+          spaceBetween={16}
+          slidesPerView={2}
+          breakpoints={{
+            640: { slidesPerView: 3 },
+            1024: { slidesPerView: 4 },
+            1280: { slidesPerView: 5 },
+          }}
+          className="px-4"
         >
-          View All
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </div>
+          {products.map((p) => (
+            <SwiperSlide key={p.id}>
+              <Link href={`/product-detail/${p.handle}`}>
+              <div className="group relative cursor-pointer">
+                {/* Image */}
+                <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-neutral-100">
+                  {p.image && (
+                    <Image
+                      src={p.image}
+                      alt={p.title}
+                      fill
+                      sizes="256px"
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  )}
+                  {/* Wishlist heart — Redux connected */}
+                  <WishlistHeart product={p} />
+                </div>
 
-      {/* Product grid */}
-      <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
-        {bestSellers.map((product) => (
-          <ProductCard key={product.id} product={product} />
-        ))}
+                {/* Info */}
+                <div className="mt-2.5 space-y-0.5">
+                  <p className="line-clamp-1 text-sm font-medium text-neutral-800">
+                    {p.title}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    {p.originalPrice && (
+                      <span className="text-xs text-neutral-400 line-through">
+                        ₹{p.originalPrice.toLocaleString("en-IN")}
+                      </span>
+                    )}
+                    <span className="text-sm font-bold text-neutral-900">
+                      ₹{p.price.toLocaleString("en-IN")}
+                    </span>
+                    {p.discount && (
+                      <span className="text-xs font-semibold text-red-500">
+                        {p.discount}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              </Link>
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </div>
     </section>
   );

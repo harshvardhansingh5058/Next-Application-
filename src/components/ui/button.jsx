@@ -42,13 +42,21 @@ function Button({
   className,
   variant = "default",
   size = "default",
+  asChild,
+  render,
+  children,
   ...props
 }) {
+  const customRender = render || (asChild && React.isValidElement(children) ? children : undefined);
+  const customChildren = asChild && React.isValidElement(children) ? undefined : children;
   return (
     <ButtonPrimitive
       data-slot="button"
+      render={customRender}
       className={cn(buttonVariants({ variant, size, className }))}
-      {...props} />
+      {...props}>
+      {customChildren}
+    </ButtonPrimitive>
   );
 }
 

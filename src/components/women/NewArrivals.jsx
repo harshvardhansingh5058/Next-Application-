@@ -1,0 +1,42 @@
+import Link from "next/link";
+import ProductCard from "@/components/common/ProductCard";
+
+/**
+ * Women New Arrivals — receives pre-fetched data via props
+ * Props:
+ *  - products: Array of mapped product objects (max 8, from page.js)
+ */
+export default function NewArrivals({ products }) {
+  if (!products || products.length === 0) return null;
+
+  return (
+    <section id="new-arrivals" className="mx-auto max-w-[1600px] px-6 py-14 lg:px-10 lg:py-20">
+
+      {/* Section Header */}
+      <div className="mb-8 flex items-end justify-between lg:mb-10">
+        <div>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.3em] text-orange-500">
+            Just In
+          </p>
+          <h2 className="text-2xl font-black tracking-tight text-neutral-950 sm:text-4xl">
+            New Arrivals
+          </h2>
+        </div>
+
+        <Link
+          href="/products?collection=women"
+          className="flex items-center gap-1.5 text-sm font-semibold text-neutral-700 transition-colors hover:text-neutral-950"
+        >
+          View All →
+        </Link>
+      </div>
+
+      {/* Product Grid */}
+      <div className="grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-3 lg:grid-cols-4">
+        {products.map((product) => (
+          <ProductCard key={product.id} product={product} />
+        ))}
+      </div>
+    </section>
+  );
+}
